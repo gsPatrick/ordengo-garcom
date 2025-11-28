@@ -1,5 +1,4 @@
 // src/app/layout.js
-'use client'; // Necessário para useEffect
 
 import { useEffect } from 'react';
 import "./globals.css";
