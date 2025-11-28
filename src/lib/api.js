@@ -1,63 +1,49 @@
-// lib/api.js - VERSÃO CORRIGIDA E CENTRALIZADA
-
+// src/lib/api.js
 import axios from 'axios';
+import Cookies from 'js-cookie';
+
+// URL da API de Produção (a mesma que você subiu)
+const BASE_URL = 'https://geral-ordengoapi.r954jc.easypanel.host/api/v1';
 
 const api = axios.create({
-  baseURL: 'https://jackbear-obras-fabio-api.r954jc.easypanel.host/',
+  baseURL: BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
-/**
- * Função UNIFICADA para definir o Profile ID globalmente.
- * Esta é a ÚNICA função que deve escrever no localStorage para o profileId.
- * @param {string | null} profileId 
- */
-export const setProfileId = (profileId) => {
-  // Garante que estamos operando no lado do cliente
-  if (typeof window !== 'undefined') {
-    if (profileId) {
-      // Usa a chave 'currentProfileId', que é a mesma lida pelo interceptor.
-      localStorage.setItem('currentProfileId', profileId);
-    } else {
-      // Garante a limpeza completa ao fazer logout ou deselecionar
-      localStorage.removeItem('currentProfileId');
-    }
-  }
-};
-
-/**
- * Interceptor para adicionar dinamicamente os cabeçalhos de autenticação
- * a cada requisição enviada pela aplicação.
- */
+// Interceptor de Requisição: Adiciona o Token JWT automaticamente
 api.interceptors.request.use(
   (config) => {
-    // Garante que estamos operando no lado do cliente
-    if (typeof window !== 'undefined') {
-      // 1. Adiciona o Token de Autenticação se ele existir
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        config.headers['Authorization'] = `Bearer ${token}`;
-      }
-      
-      // 2. Adiciona o ID do Perfil se ele existir no localStorage (LENDO DA CHAVE CORRETA)
-      const profileId = localStorage.getItem('currentProfileId');
-      
-      // 3. Define as rotas que NÃO precisam do header X-Profile-Id.
-      const profileHeaderExceptions = [
-          '/profiles', 
-          '/users/me', 
-          '/auth/login', 
-          '/auth/logout'
-      ];
-      const requiresProfileHeader = !profileHeaderExceptions.some(path => config.url.startsWith(path));
-
-      if (profileId && requiresProfileHeader) {
-          config.headers['X-Profile-Id'] = profileId;
-      }
+    // O garçom também recebe um token JWT ao fazer login com PIN
+    // O nome do cookie deve ser consistente com o que definimos no login
+    const token = Cookies.get('ordengo_token');
+    
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
     
     return config;
   },
   (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Interceptor de Resposta: Trata erros globais (ex: token expirado)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      // Se der erro de autenticação, limpa o token e redireciona para login
+      Cookies.remove('ordengo_token');
+      Cookies.remove('ordengo_user');
+      
+      // Redirecionamento seguro (apenas se estiver no browser)
+      if (typeof window !== 'undefined' && !window.location.pathname.includes('/waiter/login')) {
+        window.location.href = '/waiter/login';
+      }
+    }
     return Promise.reject(error);
   }
 );

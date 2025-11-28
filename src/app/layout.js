@@ -1,30 +1,27 @@
-import { Geist, Geist_Mono } from "next/font/google";
+// src/app/layout.js
+'use client'; // Necessário para useEffect
+
+import { useEffect } from 'react';
 import "./globals.css";
-import { AuthProvider } from "@/context/AuthContext"; // <<< IMPORTAR
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-export const metadata = {
-  title: "Obras",
-  description: "Obras",
-};
 
 export default function RootLayout({ children }) {
+  
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/service-worker.js')
+        .then((registration) => console.log('Scope: ', registration.scope))
+        .catch((err) => console.log('Service Worker Registration Failed: ', err));
+    }
+  }, []);
+
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <AuthProvider> {/* <<< ENVOLVER */}
-          {children}
-        </AuthProvider>
-      </body>
+    <html lang="pt-BR">
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#df0024" />
+      </head>
+      <body>{children}</body>
     </html>
   );
 }
