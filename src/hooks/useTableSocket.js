@@ -1,89 +1,126 @@
-// src/hooks/useTableSocket.js
-import { useEffect, useRef } from 'react';
-import { io } from 'socket.io-client';
-import useSound from 'use-sound'; // optional, fallback to native Audio if unavailable
+'use client';
 
-/**
- * useTableSocket - handles real‑time waiter call notifications.
- *
- * @param {Object} params
- * @param {string} params.restaurantId - ID of the restaurant (from cookie).
- * @param {Function} params.onNotificationResolved - callback invoked when a notification is resolved.
- * @returns {{ stopAlert: Function }} - function to stop vibration and sound immediately.
- */
-export default function useTableSocket({ restaurantId, onNotificationResolved }) {
+import { useEffect, useRef, useState } from 'react';
+import io from 'socket.io-client';
+import Cookies from 'js-cookie';
+
+// Som de alerta (certifique-se de ter um arquivo mp3 leve em public/sounds/alert.mp3)
+const ALERT_SOUND = '/sounds/alert.mp3';
+
+export function useTableSocket(onRefreshData) {
     const socketRef = useRef(null);
-    const vibrateIntervalRef = useRef(null);
-    const soundRef = useRef(null);
-    const [play, { stop: stopSound }] = useSound('/sounds/alert.mp3', { loop: true, volume: 0.5 });
+    const audioRef = useRef(null);
+    const vibrationIntervalRef = useRef(null);
 
-    // Helper to start vibration loop
-    const startVibration = () => {
+    useEffect(() => {
+        // Inicializa o áudio apenas no cliente
+        if (typeof window !== 'undefined') {
+            audioRef.current = new Audio(ALERT_SOUND);
+            audioRef.current.loop = true; // Som toca em loop
+            audioRef.current.volume = 1.0;
+        }
+
+        // Pega dados de autenticação
+        const token = Cookies.get('ordengo_token');
+        const userStr = Cookies.get('ordengo_user');
+        let restaurantId = null;
+
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                restaurantId = user.restaurantId;
+            } catch (e) {
+                console.error("Erro ao ler cookie de usuário", e);
+            }
+        }
+
+        if (!restaurantId) return;
+
+        // Conecta ao Socket (URL da sua API)
+        const socketUrl = 'https://geral-ordengoapi.r954jc.easypanel.host';
+
+        socketRef.current = io(socketUrl, {
+            transports: ['websocket'],
+            query: { token }
+        });
+
+        socketRef.current.on('connect', () => {
+            console.log("🔌 Socket conectado na sala:", `restaurant_${restaurantId}`);
+            socketRef.current.emit('join_room', { type: 'waiter', restaurantId });
+        });
+
+        // --- ESCUTA OS EVENTOS ---
+
+        // 1. Nova Notificação (Mesa chamou OU Pediu Conta)
+        socketRef.current.on('new_notification', (data) => {
+            console.log("🔔 NOVA NOTIFICAÇÃO:", data);
+
+            // Atualiza a lista visualmente
+            if (onRefreshData) onRefreshData();
+
+            // Inicia Alerta Físico (Vibração + Som)
+            startAlert();
+        });
+
+        // 2. Notificação Resolvida (Alguém atendeu)
+        socketRef.current.on('notification_resolved', (data) => {
+            console.log("✅ Notificação Resolvida:", data);
+
+            // Para o alerta imediatamente
+            stopAlert();
+
+            // Atualiza a lista visualmente
+            if (onRefreshData) onRefreshData();
+        });
+
+        // 3. Atualização genérica de mesa (status mudou)
+        socketRef.current.on('table_updated', () => {
+            if (onRefreshData) onRefreshData();
+        });
+
+        return () => {
+            stopAlert();
+            if (socketRef.current) socketRef.current.disconnect();
+        };
+    }, [onRefreshData]);
+
+    // Função para INICIAR o Alerta
+    const startAlert = () => {
+        // Tocar Som
+        if (audioRef.current) {
+            audioRef.current.play().catch(e => console.log("Audio bloqueado (interaja com a tela primeiro):", e));
+        }
+
+        // Vibrar (Loop para Android)
         if (typeof navigator !== 'undefined' && navigator.vibrate) {
-            // Clear any existing interval
-            clearInterval(vibrateIntervalRef.current);
-            // Immediate vibration then repeat every 2 seconds
-            navigator.vibrate([500, 200, 500]);
-            vibrateIntervalRef.current = setInterval(() => {
-                navigator.vibrate([500, 200, 500]);
-            }, 2000);
+            // Vibra: 500ms, Pausa: 300ms, Vibra: 500ms
+            navigator.vibrate([500, 300, 500]);
+
+            // Garante o loop infinito até parar
+            if (!vibrationIntervalRef.current) {
+                vibrationIntervalRef.current = setInterval(() => {
+                    navigator.vibrate([500, 300, 500]);
+                }, 2000);
+            }
         }
     };
 
-    const stopVibration = () => {
-        if (vibrateIntervalRef.current) {
-            clearInterval(vibrateIntervalRef.current);
-            vibrateIntervalRef.current = null;
+    // Função para PARAR o Alerta (Exposta para ser usada no botão "Confirmar")
+    const stopAlert = () => {
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
         }
+
+        if (vibrationIntervalRef.current) {
+            clearInterval(vibrationIntervalRef.current);
+            vibrationIntervalRef.current = null;
+        }
+
         if (typeof navigator !== 'undefined' && navigator.vibrate) {
             navigator.vibrate(0);
         }
     };
-
-    // Stop both vibration and sound – exposed to callers (e.g., when waiter confirms)
-    const stopAlert = () => {
-        stopVibration();
-        stopSound();
-        if (soundRef.current) {
-            soundRef.current.pause();
-            soundRef.current.currentTime = 0;
-        }
-    };
-
-    useEffect(() => {
-        if (!restaurantId) return;
-        // Initialize Socket.IO client
-        const socket = io(process.env.NEXT_PUBLIC_API_URL, {
-            transports: ['websocket'],
-            withCredentials: true,
-        });
-        socketRef.current = socket;
-
-        socket.emit('join_room', { type: 'waiter', restaurantId });
-
-        socket.on('new_notification', (data) => {
-            // Only react to CALL_WAITER notifications
-            if (data && data.type === 'CALL_WAITER') {
-                startVibration();
-                // Play sound loop – useSound already started playing when called
-                play();
-            }
-        });
-
-        socket.on('notification_resolved', () => {
-            stopAlert();
-            if (typeof onNotificationResolved === 'function') {
-                onNotificationResolved();
-            }
-        });
-
-        // Cleanup on unmount
-        return () => {
-            stopAlert();
-            if (socket) socket.disconnect();
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [restaurantId]);
 
     return { stopAlert };
 }
