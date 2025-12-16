@@ -11,6 +11,7 @@ import { TableCard } from "@/components/dashboard/TableCard";
 import { CallingNotificationDialog } from "@/components/dashboard/CallingNotificationDialog";
 import api from '@/lib/api';
 import Cookies from 'js-cookie';
+import useTableSocket from '@/hooks/useTableSocket';
 
 // --- MODAL DE GERENCIAMENTO DE TABLET (RESPONSIVO) ---
 function DeviceManagerModal({ table, isOpen, onClose }) {
@@ -186,9 +187,16 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 5000);
-    return () => clearInterval(interval);
   }, [fetchData]);
+
+  // Initialize Socket.IO for real-time notifications
+  const { stopAlert } = useTableSocket({
+    restaurantId: Cookies.get('ordengo_user') ? JSON.parse(Cookies.get('ordengo_user')).restaurantId : null,
+    onNotificationResolved: () => {
+      // Refresh data when a notification is resolved
+      fetchData();
+    },
+  });
 
   const handleLogout = () => {
     Cookies.remove('ordengo_token');
@@ -215,6 +223,8 @@ export default function DashboardPage() {
       if (notification) {
         await api.patch(`/notifications/${notification.id}/resolve`);
       }
+      // Stop vibration and sound immediately when the waiter confirms attendance
+      stopAlert();
       await fetchData();
 
       if (isBillRequest) {
