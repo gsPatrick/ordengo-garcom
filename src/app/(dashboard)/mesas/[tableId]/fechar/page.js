@@ -4,30 +4,30 @@ import { useRouter, useParams, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch"; 
+import { Switch } from "@/components/ui/switch";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  Dialog,
-  DialogContent,
+    Dialog,
+    DialogContent,
 } from "@/components/ui/dialog";
-import { 
-  ArrowLeft, Minus, Plus, Loader2, 
-  CreditCard, Banknote, QrCode, Wallet, 
-  Receipt, Users, CheckCircle2, Image as ImageIcon, Check 
+import {
+    ArrowLeft, Minus, Plus, Loader2,
+    CreditCard, Banknote, QrCode, Wallet,
+    Receipt, Users, CheckCircle2, Image as ImageIcon, Check
 } from "lucide-react";
 import api from '@/lib/api';
 
 const BASE_IMG_URL = 'https://geral-ordengoapi.r954jc.easypanel.host';
-const formatCurrency = (value) => value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const formatCurrency = (value) => value.toLocaleString("es-ES", { style: "currency", currency: "EUR" });
 
 export default function CloseAccountPage() {
     const router = useRouter();
@@ -39,12 +39,12 @@ export default function CloseAccountPage() {
     const [table, setTable] = useState(null);
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
-    
+
     // Controle de UI
     const [people, setPeople] = useState(1);
     const [includeServiceFee, setIncludeServiceFee] = useState(true);
     const [selectedMethod, setSelectedMethod] = useState(initialMethod || 'credit');
-    
+
     // Estados dos Modais
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const [isSuccessOpen, setIsSuccessOpen] = useState(false);
@@ -55,9 +55,9 @@ export default function CloseAccountPage() {
             try {
                 const tablesRes = await api.get('/tables');
                 const currentTable = tablesRes.data.data.tables.find(t => String(t.id) === String(tableId));
-                
+
                 if (!currentTable) {
-                    alert("Mesa não encontrada");
+                    alert("Mesa no encontrada");
                     return router.push('/');
                 }
                 setTable(currentTable);
@@ -105,18 +105,18 @@ export default function CloseAccountPage() {
     // Passo 2: Executar Pagamento
     const handleConfirmPayment = async () => {
         if (!table?.currentSessionId) return;
-        
+
         setProcessing(true);
         try {
             await api.post(`/orders/session/${table.currentSessionId}/close`, {
                 paymentMethod: selectedMethod
             });
-            
+
             setIsConfirmOpen(false);
             setIsSuccessOpen(true); // Abre modal de sucesso
         } catch (error) {
             console.error(error);
-            alert("Erro ao fechar conta. Tente novamente.");
+            alert("Error al cerrar cuenta. Intente nuevamente.");
             setIsConfirmOpen(false);
         } finally {
             setProcessing(false);
@@ -129,18 +129,17 @@ export default function CloseAccountPage() {
     };
 
     const getMethodLabel = (method) => {
-        const map = { credit: 'Crédito', debit: 'Débito', pix: 'Pix', cash: 'Dinheiro' };
-        return map[method] || 'Outro';
+        const map = { credit: 'Crédito', debit: 'Débito', pix: 'Pix', cash: 'Efectivo' };
+        return map[method] || 'Otro';
     }
 
     const PaymentButton = ({ method, icon: Icon, label }) => (
         <button
             onClick={() => setSelectedMethod(method)}
-            className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${
-                selectedMethod === method 
-                ? 'border-[#df0024] bg-red-50 text-[#df0024]' 
-                : 'border-gray-100 bg-white text-gray-500 hover:border-gray-300'
-            }`}
+            className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${selectedMethod === method
+                    ? 'border-[#df0024] bg-red-50 text-[#df0024]'
+                    : 'border-gray-100 bg-white text-gray-500 hover:border-gray-300'
+                }`}
         >
             <Icon className={`mb-1 h-6 w-6 ${selectedMethod === method ? 'text-[#df0024]' : 'text-gray-400'}`} />
             <span className="text-xs font-bold">{label}</span>
@@ -152,19 +151,19 @@ export default function CloseAccountPage() {
 
     return (
         <div className="flex flex-col h-screen bg-gray-50">
-            
+
             <header className="flex items-center p-4 bg-white border-b sticky top-0 z-10">
                 <Button variant="ghost" size="icon" onClick={() => router.back()}>
                     <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <div className="ml-4">
-                    <h1 className="text-lg font-bold text-gray-900">Fechamento</h1>
+                    <h1 className="text-lg font-bold text-gray-900">Cierre</h1>
                     <p className="text-xs text-gray-500">Mesa {table?.number}</p>
                 </div>
             </header>
 
             <main className="flex-1 overflow-y-auto p-4 space-y-4 pb-36">
-                
+
                 {/* TOTALIZADOR */}
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-center">
                     <p className="text-sm text-gray-500 font-medium uppercase tracking-wide mb-1">Valor Total</p>
@@ -185,8 +184,8 @@ export default function CloseAccountPage() {
                                 <Receipt size={20} />
                             </div>
                             <div>
-                                <p className="font-bold text-gray-800">Taxa de Serviço (10%)</p>
-                                <p className="text-xs text-gray-500">{includeServiceFee ? 'Cobrar taxa' : 'Remover taxa'}</p>
+                                <p className="font-bold text-gray-800">Cargo por Servicio (10%)</p>
+                                <p className="text-xs text-gray-500">{includeServiceFee ? 'Cobrar cargo' : 'Remover cargo'}</p>
                             </div>
                         </div>
                         <Switch checked={includeServiceFee} onCheckedChange={setIncludeServiceFee} className="data-[state=checked]:bg-[#df0024]" />
@@ -198,8 +197,8 @@ export default function CloseAccountPage() {
                                 <Users size={20} />
                             </div>
                             <div>
-                                <p className="font-bold text-gray-800">Dividir Conta</p>
-                                <p className="text-xs text-gray-500">{people} pagantes</p>
+                                <p className="font-bold text-gray-800">Dividir Cuenta</p>
+                                <p className="text-xs text-gray-500">{people} pagadores</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-1">
@@ -213,30 +212,30 @@ export default function CloseAccountPage() {
                 {/* MÉTODO DE PAGAMENTO */}
                 <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
                     <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <Wallet size={18} className="text-gray-400" /> Método de Pagamento
+                        <Wallet size={18} className="text-gray-400" /> Método de Pago
                     </h3>
                     <div className="grid grid-cols-4 gap-2">
                         <PaymentButton method="credit" label="Crédito" icon={CreditCard} />
                         <PaymentButton method="debit" label="Débito" icon={CreditCard} />
                         <PaymentButton method="pix" label="Pix" icon={QrCode} />
-                        <PaymentButton method="cash" label="Dinheiro" icon={Banknote} />
+                        <PaymentButton method="cash" label="Efectivo" icon={Banknote} />
                     </div>
                 </div>
 
                 {/* RECIBO DETALHADO */}
                 <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
                     <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <Receipt size={18} className="text-gray-400" /> Detalhes do Consumo
+                        <Receipt size={18} className="text-gray-400" /> Detalles del Consumo
                     </h3>
                     <div className="space-y-4">
                         {orders.map((item, idx) => (
                             <div key={idx} className="flex items-center gap-4 border-b border-gray-50 pb-3 last:border-0 last:pb-0">
                                 <div className="h-12 w-12 rounded-lg bg-gray-100 relative overflow-hidden flex-shrink-0 border border-gray-200">
                                     {item.image ? (
-                                        <Image 
-                                            src={`${BASE_IMG_URL}${item.image}`} 
-                                            alt={item.name} 
-                                            layout="fill" 
+                                        <Image
+                                            src={`${BASE_IMG_URL}${item.image}`}
+                                            alt={item.name}
+                                            layout="fill"
                                             objectFit="cover"
                                             unoptimized={true}
                                         />
@@ -255,8 +254,8 @@ export default function CloseAccountPage() {
                         ))}
                     </div>
                     <div className="mt-6 pt-4 border-t-2 border-dashed border-gray-100 space-y-2 text-sm">
-                        <div className="flex justify-between text-gray-600"><span>Subtotal Itens</span><span>{formatCurrency(subtotal)}</span></div>
-                        <div className="flex justify-between text-gray-600"><span>Serviço (10%)</span><span>{formatCurrency(serviceFee)}</span></div>
+                        <div className="flex justify-between text-gray-600"><span>Subtotal Items</span><span>{formatCurrency(subtotal)}</span></div>
+                        <div className="flex justify-between text-gray-600"><span>Servicio (10%)</span><span>{formatCurrency(serviceFee)}</span></div>
                         <div className="flex justify-between font-bold text-lg text-gray-900 pt-2"><span>Total Final</span><span>{formatCurrency(total)}</span></div>
                     </div>
                 </div>
@@ -275,60 +274,60 @@ export default function CloseAccountPage() {
                         <p className="font-bold text-[#df0024]">{getMethodLabel(selectedMethod)}</p>
                     </div>
                 </div>
-                <Button 
-                    size="lg" 
+                <Button
+                    size="lg"
                     className="w-full h-14 text-lg font-bold bg-[#df0024] hover:bg-red-700 shadow-lg shadow-red-100"
                     onClick={handleInitiatePayment}
                 >
-                    Confirmar Pagamento
+                    Confirmar Pago
                 </Button>
             </footer>
 
             {/* --- MODAL DE CONFIRMAÇÃO --- */}
             <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
-              <AlertDialogContent className="max-w-xs rounded-2xl">
-                <AlertDialogHeader>
-                  <AlertDialogTitle className="text-center text-xl">Confirmar Recebimento?</AlertDialogTitle>
-                  <AlertDialogDescription className="text-center">
-                    Confirma o recebimento de <strong>{formatCurrency(total)}</strong> via <strong>{getMethodLabel(selectedMethod)}</strong>?
-                    <br/><br/>
-                    A mesa será liberada automaticamente.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter className="flex-col gap-2">
-                  <AlertDialogAction 
-                    onClick={handleConfirmPayment} 
-                    className="w-full bg-green-600 hover:bg-green-700 text-white h-12 font-bold text-lg"
-                    disabled={processing}
-                  >
-                    {processing ? <Loader2 className="animate-spin" /> : "Sim, Confirmar"}
-                  </AlertDialogAction>
-                  <AlertDialogCancel className="w-full mt-0">Cancelar</AlertDialogCancel>
-                </AlertDialogFooter>
-              </AlertDialogContent>
+                <AlertDialogContent className="max-w-xs rounded-2xl">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-center text-xl">¿Confirmar Recepción?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-center">
+                            ¿Confirma la recepción de <strong>{formatCurrency(total)}</strong> vía <strong>{getMethodLabel(selectedMethod)}</strong>?
+                            <br /><br />
+                            La mesa será liberada automáticamente.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="flex-col gap-2">
+                        <AlertDialogAction
+                            onClick={handleConfirmPayment}
+                            className="w-full bg-green-600 hover:bg-green-700 text-white h-12 font-bold text-lg"
+                            disabled={processing}
+                        >
+                            {processing ? <Loader2 className="animate-spin" /> : "Sí, Confirmar"}
+                        </AlertDialogAction>
+                        <AlertDialogCancel className="w-full mt-0">Cancelar</AlertDialogCancel>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
             </AlertDialog>
 
             {/* --- MODAL DE SUCESSO --- */}
-            <Dialog 
-                open={isSuccessOpen} 
+            <Dialog
+                open={isSuccessOpen}
                 onOpenChange={(isOpen) => {
                     if (!isOpen) handleFinish(); // Redireciona se fechar clicando fora
                 }}
             >
-              <DialogContent className="max-w-xs rounded-3xl text-center flex flex-col items-center py-10 [&>button]:hidden">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-4 animate-in zoom-in duration-300">
-                  <Check className="w-10 h-10 text-green-600" strokeWidth={3} />
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Pagamento Sucesso!</h2>
-                <p className="text-gray-500 mb-8 text-sm">A mesa {table?.number} foi liberada e está pronta para o próximo cliente.</p>
-                
-                <Button 
-                  onClick={handleFinish}
-                  className="w-full bg-gray-900 hover:bg-black text-white font-bold rounded-xl py-6 text-lg"
-                >
-                  Voltar ao Início
-                </Button>
-              </DialogContent>
+                <DialogContent className="max-w-xs rounded-3xl text-center flex flex-col items-center py-10 [&>button]:hidden">
+                    <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-4 animate-in zoom-in duration-300">
+                        <Check className="w-10 h-10 text-green-600" strokeWidth={3} />
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">¡Pago Exitoso!</h2>
+                    <p className="text-gray-500 mb-8 text-sm">La mesa {table?.number} fue liberada y está lista para el próximo cliente.</p>
+
+                    <Button
+                        onClick={handleFinish}
+                        className="w-full bg-gray-900 hover:bg-black text-white font-bold rounded-xl py-6 text-lg"
+                    >
+                        Volver al Inicio
+                    </Button>
+                </DialogContent>
             </Dialog>
 
         </div>

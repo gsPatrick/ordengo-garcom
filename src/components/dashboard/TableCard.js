@@ -8,7 +8,7 @@ export function TableCard({ table, onClick, onManage }) {
     occupied: "bg-amber-500 hover:bg-amber-600",
     calling: "bg-amber-500 hover:bg-amber-600 animate-pulse",
     reserved: "bg-blue-600 hover:bg-blue-700",
-    closing: "bg-red-600 hover:bg-red-700", 
+    closing: "bg-red-600 hover:bg-red-700",
   };
 
   return (
@@ -21,17 +21,17 @@ export function TableCard({ table, onClick, onManage }) {
     >
       {/* --- ÍCONE DO TABLET (Canto Superior Esquerdo) --- */}
       {/* Ao clicar aqui, abre o modal de código/desvincular sem entrar na mesa */}
-      <div 
+      <div
         onClick={(e) => {
-          e.stopPropagation(); 
-          if(onManage) onManage(table);
+          e.stopPropagation();
+          if (onManage) onManage(table);
         }}
         className="absolute top-2 left-2 p-1.5 rounded-full bg-black/20 hover:bg-black/40 transition-colors cursor-pointer z-10"
-        title={table.isDeviceConnected ? "Tablet Conectado" : "Conectar Tablet"}
+        title={table.isDeviceConnected ? "Tablet Conectada" : "Conectar Tablet"}
       >
-        <Tablet 
-          size={16} 
-          className={table.isDeviceConnected ? "text-green-300 fill-green-300" : "text-white/50"} 
+        <Tablet
+          size={16}
+          className={table.isDeviceConnected ? "text-green-300 fill-green-300" : "text-white/50"}
         />
       </div>
 
@@ -52,10 +52,10 @@ export function TableCard({ table, onClick, onManage }) {
       {/* --- NOME DO CLIENTE (Opcional - Rodapé) --- */}
       {table.activeSession?.clientName && (
         <div className="absolute bottom-2 flex items-center gap-1 bg-black/10 px-2 py-0.5 rounded-full max-w-[90%]">
-            <Users size={10} className="text-white/90" />
-            <span className="text-[10px] font-normal truncate text-white/90">
-                {table.activeSession.clientName}
-            </span>
+          <Users size={10} className="text-white/90" />
+          <span className="text-[10px] font-normal truncate text-white/90">
+            {table.activeSession.clientName}
+          </span>
         </div>
       )}
     </div>

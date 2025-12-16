@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { 
-  ArrowLeft, 
-  MoreVertical, 
-  Users, 
-  Clock, 
-  Loader2, 
+import {
+  ArrowLeft,
+  MoreVertical,
+  Users,
+  Clock,
+  Loader2,
   ShoppingCart,
   Check,
   CircleDollarSign,
@@ -22,13 +22,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import {
   Dialog,
@@ -44,8 +44,8 @@ function OrderItem({ item, onUpdateStatus }) {
   return (
     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
       <div className="flex items-center gap-3">
-        <div className={`w-2 h-2 rounded-full ${item.waiterId ? 'bg-green-500' : 'bg-blue-500'}`} 
-             title={item.waiterId ? "Garçom" : "Cliente"} />
+        <div className={`w-2 h-2 rounded-full ${item.waiterId ? 'bg-green-500' : 'bg-blue-500'}`}
+          title={item.waiterId ? "Garçom" : "Cliente"} />
         <div>
           <span className="font-medium text-gray-800 text-sm">
             {item.quantity}x {item.Product?.name?.pt || 'Item'}
@@ -56,13 +56,13 @@ function OrderItem({ item, onUpdateStatus }) {
             </p>
           )}
           <p className="text-xs text-gray-500 mt-0.5">
-            {Number(item.unitPrice).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} cada
+            {Number(item.unitPrice).toLocaleString("es-ES", { style: "currency", currency: "EUR" })} cada
           </p>
         </div>
       </div>
       <div className='flex items-center gap-3'>
         <span className="font-semibold text-gray-800 text-sm">
-          {Number(item.totalPrice).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+          {Number(item.totalPrice).toLocaleString("es-ES", { style: "currency", currency: "EUR" })}
         </span>
         {item.Order?.status !== 'delivered' && item.Order?.status !== 'cancelled' && (
           <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-green-600 hover:bg-green-50" onClick={() => onUpdateStatus(item.orderId, 'delivered')}>
@@ -80,7 +80,7 @@ function DeviceManagerDialog({ table, isOpen, onClose, onUnbind, onCopyCode }) {
 
   // Assume que a API retorna os dispositivos dentro do objeto da mesa (table.Devices)
   // Caso contrário, precisaríamos fazer um fetch específico aqui.
-  const devices = table.Devices || []; 
+  const devices = table.Devices || [];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -92,10 +92,10 @@ function DeviceManagerDialog({ table, isOpen, onClose, onUnbind, onCopyCode }) {
         </DialogHeader>
 
         <div className="space-y-6 py-2">
-          
+
           {/* Área do Código de Pareamento */}
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-center space-y-2">
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Código de Conexão</span>
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Código de Conexión</span>
             <div className="flex items-center justify-center gap-3">
               <code className="text-3xl font-mono font-bold text-gray-900 tracking-widest">
                 {table.code || '----'}
@@ -104,7 +104,7 @@ function DeviceManagerDialog({ table, isOpen, onClose, onUnbind, onCopyCode }) {
                 <Copy className="h-4 w-4" />
               </Button>
             </div>
-            <p className="text-xs text-gray-400">Use este código para conectar um novo tablet.</p>
+            <p className="text-xs text-gray-400">Use este código para conectar una nueva tablet.</p>
           </div>
 
           {/* Lista de Dispositivos Conectados */}
@@ -122,9 +122,9 @@ function DeviceManagerDialog({ table, isOpen, onClose, onUnbind, onCopyCode }) {
                         Bateria: {device.batteryLevel ? `${device.batteryLevel}%` : 'N/A'} • v{device.appVersion || '1.0'}
                       </span>
                     </div>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className="text-red-500 hover:text-red-700 hover:bg-red-50"
                       onClick={() => onUnbind(device.id)}
                     >
@@ -134,7 +134,7 @@ function DeviceManagerDialog({ table, isOpen, onClose, onUnbind, onCopyCode }) {
                 ))
               ) : (
                 <div className="text-center py-4 text-gray-400 text-sm italic border-2 border-dashed rounded-lg">
-                  Nenhum tablet conectado nesta mesa.
+                  Ninguna tablet conectada en esta mesa.
                 </div>
               )}
             </div>
@@ -150,53 +150,70 @@ export default function TableDetailsPage() {
   const { tableId } = useParams();
 
   const [table, setTable] = useState(null);
-  const [orders, setOrders] = useState([]); 
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Estado para controlar o modal de dispositivos
   const [isDeviceManagerOpen, setIsDeviceManagerOpen] = useState(false);
 
-  // Carregar Dados
-  const fetchTableData = async () => {
-    try {
-      // 1. Pegar todas as mesas e encontrar a atual
-      const tablesRes = await api.get('/tables');
-      // Estamos assumindo que o backend retorna a propriedade 'Devices' dentro de cada mesa
-      // ou que precisamos chamar /tables/devices. 
-      // Pela estrutura padrão de ORMs (Sequelize/Prisma), geralmente vem junto se solicitado.
-      const currentTable = tablesRes.data.data.tables.find(t => String(t.id) === String(tableId));
-      
-      if (!currentTable) {
-        alert("Mesa não encontrada");
-        router.push('/');
-        return;
-      }
-      setTable(currentTable);
-
-      // 2. Se tiver sessão ativa, buscar pedidos
-      if (currentTable.currentSessionId) {
-        const sessionRes = await api.get(`/orders/session/${currentTable.currentSessionId}`);
-        setOrders(sessionRes.data.data.orders);
-      } else {
-        setOrders([]);
-      }
-
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchTableData = async () => {
+      try {
+        // 1. Pegar todas as mesas e encontrar a atual
+        const tablesRes = await api.get('/tables');
+
+        // Estamos assumindo que o backend retorna a propriedade 'Devices' dentro de cada mesa
+        // ou que precisamos chamar /tables/devices. 
+        // Pela estrutura padrão de ORMs (Sequelize/Prisma), geralmente vem junto se solicitado.
+        const currentTable = tablesRes.data.data.tables.find(t => String(t.id) === String(tableId));
+
+        if (!currentTable) {
+          alert("Mesa não encontrada");
+          router.push('/');
+          return;
+        }
+        setTable(currentTable);
+
+        // 2. Se tiver sessão ativa, buscar pedidos
+        if (currentTable.currentSessionId) {
+          const sessionRes = await api.get(`/orders/session/${currentTable.currentSessionId}`);
+          setOrders(sessionRes.data.data.orders);
+        } else {
+          setOrders([]);
+        }
+
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchTableData();
-  }, [tableId]);
+  }, [tableId, router]);
+
+  // Função Wrapper para uso fora do useEffect (se necessário recarregar)
+  const reloadTableData = async () => {
+    try {
+      const tablesRes = await api.get('/tables');
+      const currentTable = tablesRes.data.data.tables.find(t => String(t.id) === String(tableId));
+      if (currentTable) {
+        setTable(currentTable);
+        if (currentTable.currentSessionId) {
+          const sessionRes = await api.get(`/orders/session/${currentTable.currentSessionId}`);
+          setOrders(sessionRes.data.data.orders);
+        } else {
+          setOrders([]);
+        }
+      }
+    } catch (e) { console.error(e); }
+  };
 
   // Ações de Mesa
   const handleChangeStatus = async (newStatus) => {
     try {
       await api.patch(`/tables/${tableId}/status`, { status: newStatus });
-      fetchTableData();
+      reloadTableData();
     } catch (error) {
       alert('Erro ao atualizar status');
     }
@@ -206,7 +223,7 @@ export default function TableDetailsPage() {
   const handleDeliverOrder = async (orderId, status) => {
     try {
       await api.patch(`/orders/${orderId}/status`, { status });
-      fetchTableData();
+      reloadTableData();
     } catch (error) {
       alert('Erro ao atualizar pedido');
     }
@@ -214,12 +231,12 @@ export default function TableDetailsPage() {
 
   // --- NOVAS AÇÕES: DISPOSITIVOS ---
   const handleUnbindDevice = async (deviceId) => {
-    if (!confirm("Tem certeza que deseja desconectar este tablet? Ele voltará para a tela de configuração.")) return;
-    
+    if (!confirm("¿Está seguro de que desea desconectar esta tablet? Volverá a la pantalla de configuración.")) return;
+
     try {
       await api.patch(`/tables/devices/${deviceId}/unbind`);
-      alert("Tablet desconectado com sucesso!");
-      fetchTableData(); // Recarrega para atualizar a lista
+      alert("¡Tablet desconectada con éxito!");
+      reloadTableData(); // Recarrega para atualizar a lista
     } catch (error) {
       console.error(error);
       alert("Erro ao desconectar dispositivo.");
@@ -229,9 +246,9 @@ export default function TableDetailsPage() {
   const handleCopyCode = (code) => {
     if (code) {
       navigator.clipboard.writeText(code);
-      alert("Código copiado para a área de transferência!");
+      alert("¡Código copiado al portapapeles!");
     } else {
-      alert("Código não disponível.");
+      alert("Código no disponible.");
     }
   };
 
@@ -241,9 +258,9 @@ export default function TableDetailsPage() {
     orders.forEach(order => {
       if (order.items) {
         order.items.forEach(item => {
-          items.push({ 
-            ...item, 
-            Order: { status: order.status, id: order.id } 
+          items.push({
+            ...item,
+            Order: { status: order.status, id: order.id }
           });
         });
       }
@@ -265,14 +282,14 @@ export default function TableDetailsPage() {
 
   const statusInfo = {
     occupied: { variant: "secondary", label: "Ocupada", color: "bg-blue-100 text-blue-800" },
-    calling: { variant: "destructive", label: "Chamando", color: "bg-red-100 text-red-800" },
-    free: { variant: "outline", label: "Livre", color: "bg-green-100 text-green-800" },
-    closing: { variant: "destructive", label: "Fechamento", color: "bg-orange-100 text-orange-800" },
+    calling: { variant: "destructive", label: "Llamando", color: "bg-red-100 text-red-800" },
+    free: { variant: "outline", label: "Libre", color: "bg-green-100 text-green-800" },
+    closing: { variant: "destructive", label: "Cierre", color: "bg-orange-100 text-orange-800" },
   };
 
   return (
     <div className="flex flex-col h-screen bg-white">
-      
+
       {/* Header */}
       <header className="flex items-center p-4 border-b sticky top-0 bg-white z-10 shadow-sm">
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
@@ -293,38 +310,38 @@ export default function TableDetailsPage() {
             <Button variant="ghost" size="icon"><MoreVertical className="h-5 w-5" /></Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Ações da Mesa</DropdownMenuLabel>
+            <DropdownMenuLabel>Acciones de la Mesa</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            
+
             <DropdownMenuSeparator />
 
             {/* AÇÃO: OCUPAR */}
-            <DropdownMenuItem 
-              onClick={() => handleChangeStatus('occupied')} 
-              disabled={isTableBusy} 
+            <DropdownMenuItem
+              onClick={() => handleChangeStatus('occupied')}
+              disabled={isTableBusy}
             >
-              <UserCheck className="mr-2 h-4 w-4" /> 
+              <UserCheck className="mr-2 h-4 w-4" />
               <span>Ocupar Mesa</span>
             </DropdownMenuItem>
-            
+
             {/* AÇÃO: FECHAMENTO */}
-            <DropdownMenuItem 
-              onClick={() => handleChangeStatus('closing')} 
-              disabled={!hasConsumption} 
+            <DropdownMenuItem
+              onClick={() => handleChangeStatus('closing')}
+              disabled={!hasConsumption}
             >
-              <Lock className="mr-2 h-4 w-4" /> 
-              <span>Iniciar Fechamento</span>
+              <Lock className="mr-2 h-4 w-4" />
+              <span>Iniciar Cierre</span>
             </DropdownMenuItem>
-            
+
             <DropdownMenuSeparator />
-            
+
             {/* AÇÃO: LIBERAR */}
-            <DropdownMenuItem 
-              onClick={() => handleChangeStatus('free')} 
-              disabled={hasConsumption} 
+            <DropdownMenuItem
+              onClick={() => handleChangeStatus('free')}
+              disabled={hasConsumption}
               className="text-red-600 focus:text-red-600"
             >
-              <DoorOpen className="mr-2 h-4 w-4" /> 
+              <DoorOpen className="mr-2 h-4 w-4" />
               <span>Liberar Mesa</span>
             </DropdownMenuItem>
 
@@ -334,17 +351,17 @@ export default function TableDetailsPage() {
 
       {/* Conteúdo */}
       <main className="flex-1 overflow-y-auto p-4 space-y-6">
-        
+
         {/* Info Sessão */}
         {table.currentSessionId && (
           <section className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-2">
             <div className="flex items-center gap-3 text-sm text-gray-600">
               <Users className="h-4 w-4" />
-              <span>{table.activeSession?.clientName || 'Cliente não identificado'}</span>
+              <span>{table.activeSession?.clientName || 'Cliente no identificado'}</span>
             </div>
             <div className="flex items-center gap-3 text-sm text-gray-600">
               <Clock className="h-4 w-4" />
-              <span>Sessão Ativa</span>
+              <span>Sesión Activa</span>
             </div>
           </section>
         )}
@@ -353,27 +370,27 @@ export default function TableDetailsPage() {
         <section>
           <Tabs defaultValue="pending" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-4">
-              <TabsTrigger value="pending">Pendentes ({pendingItems.length})</TabsTrigger>
-              <TabsTrigger value="delivered">Entregues ({deliveredItems.length})</TabsTrigger>
+              <TabsTrigger value="pending">Pendientes ({pendingItems.length})</TabsTrigger>
+              <TabsTrigger value="delivered">Entregados ({deliveredItems.length})</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="pending" className="space-y-3">
               {pendingItems.length > 0 ? (
                 pendingItems.map(item => (
                   <OrderItem key={item.id} item={item} onUpdateStatus={handleDeliverOrder} />
                 ))
               ) : (
-                <div className="text-center py-8 text-gray-400 text-sm">Tudo entregue por aqui.</div>
+                <div className="text-center py-8 text-gray-400 text-sm">Todo entregado por aquí.</div>
               )}
             </TabsContent>
-            
+
             <TabsContent value="delivered" className="space-y-3">
               {deliveredItems.length > 0 ? (
                 deliveredItems.map(item => (
                   <OrderItem key={item.id} item={item} onUpdateStatus={null} />
                 ))
               ) : (
-                <div className="text-center py-8 text-gray-400 text-sm">Nenhum item entregue ainda.</div>
+                <div className="text-center py-8 text-gray-400 text-sm">Ningún item entregado aún.</div>
               )}
             </TabsContent>
           </Tabs>
@@ -385,40 +402,40 @@ export default function TableDetailsPage() {
         <div className="space-y-1 text-sm">
           <div className="flex justify-between text-gray-600">
             <span>Subtotal</span>
-            <span>{totalAmount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
+            <span>{totalAmount.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}</span>
           </div>
           <div className="flex justify-between text-gray-500">
-            <span>Serviço (10%)</span>
-            <span>{serviceFee.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
+            <span>Servicio (10%)</span>
+            <span>{serviceFee.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}</span>
           </div>
           <div className="flex justify-between font-bold text-xl text-gray-900 pt-2 border-t border-gray-100 mt-2">
             <span>Total</span>
-            <span>{finalTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
+            <span>{finalTotal.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}</span>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <Button 
-            size="lg" 
+          <Button
+            size="lg"
             className="bg-gray-900 text-white hover:bg-black"
-            onClick={() => router.push(`/mesas/${tableId}/novo-pedido`)} 
+            onClick={() => router.push(`/mesas/${tableId}/novo-pedido`)}
           >
-            <ShoppingCart className="mr-2 h-4 w-4" /> Novo Pedido
+            <ShoppingCart className="mr-2 h-4 w-4" /> Nuevo Pedido
           </Button>
-          <Button 
-            size="lg" 
+          <Button
+            size="lg"
             variant="destructive"
             className="bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
             disabled={!hasConsumption}
             onClick={() => router.push(`/mesas/${tableId}/fechar`)}
           >
-            <CircleDollarSign className="mr-2 h-4 w-4" /> Fechar
+            <CircleDollarSign className="mr-2 h-4 w-4" /> Cerrar
           </Button>
         </div>
       </footer>
 
       {/* MODAL DE GERENCIAMENTO DE TABLETS */}
-      <DeviceManagerDialog 
+      <DeviceManagerDialog
         table={table}
         isOpen={isDeviceManagerOpen}
         onClose={() => setIsDeviceManagerOpen(false)}

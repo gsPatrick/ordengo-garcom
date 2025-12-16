@@ -52,7 +52,7 @@ export default function LoginPage() {
       // Salva sessão
       Cookies.set('ordengo_token', token, { expires: 1 });
       Cookies.set('ordengo_user', JSON.stringify(data.user), { expires: 1 });
-      
+
       // --- CORREÇÃO CRÍTICA AQUI ---
       // Atualiza o ID do restaurante com o UUID real retornado pelo backend
       // Isso garante que futuras chamadas usem o UUID e não o Slug "patrick"
@@ -60,10 +60,10 @@ export default function LoginPage() {
         Cookies.set('ordengo_restaurant_id', data.user.restaurantId, { expires: 365 });
       }
 
-      router.push('/'); // Vai para o Dashboard (Mapa de Mesas)
+      router.push('/mesas'); // Va al Dashboard (Mapa de Mesas)
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.message || 'PIN incorreto ou erro no servidor.');
+      setError(err.response?.data?.message || 'PIN incorrecto o error en el servidor.');
       setPin('');
     } finally {
       setLoading(false);
@@ -78,7 +78,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-zinc-900 flex items-center justify-center p-4">
-      
+
       {step === 1 ? (
         /* ETAPA 1: VINCULAR RESTAURANTE */
         <div className="bg-white w-full max-w-md p-8 rounded-3xl shadow-2xl">
@@ -87,16 +87,16 @@ export default function LoginPage() {
               <Building2 size={32} className="text-[#df0024]" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Configurar Dispositivo</h1>
-            <p className="text-gray-500 text-sm mt-2">Insira o ID do Restaurante para vincular este aparelho.</p>
+            <p className="text-gray-500 text-sm mt-2">Introduzca el ID del Restaurante para vincular este dispositivo.</p>
           </div>
 
           <form onSubmit={handleSaveRestaurant} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-gray-700 uppercase mb-1">ID do Restaurante</label>
-              <input 
-                type="text" 
+              <label className="block text-xs font-bold text-gray-700 uppercase mb-1">ID del Restaurante</label>
+              <input
+                type="text"
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#df0024] outline-none"
-                placeholder="Cole o ID ou Slug aqui..."
+                placeholder="Pegue el ID o Slug aquí..."
                 value={restaurantId}
                 onChange={e => setRestaurantId(e.target.value)}
               />
@@ -114,9 +114,9 @@ export default function LoginPage() {
             <div className="bg-zinc-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
               <ChefHat size={32} className="text-white" />
             </div>
-            <h2 className="text-white/50 text-xs uppercase tracking-widest mb-2">Acesso Restrito</h2>
-            <button onClick={() => {setStep(1); Cookies.remove('ordengo_restaurant_id')}} className="text-xs text-[#df0024] underline">
-              Trocar Restaurante
+            <h2 className="text-white/50 text-xs uppercase tracking-widest mb-2">Acceso Restringido</h2>
+            <button onClick={() => { setStep(1); Cookies.remove('ordengo_restaurant_id') }} className="text-xs text-[#df0024] underline">
+              Cambiar Restaurante
             </button>
           </div>
 
@@ -150,11 +150,10 @@ export default function LoginPage() {
           <button
             onClick={handleLogin}
             disabled={pin.length < 4 || loading}
-            className={`mt-8 w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${
-              pin.length === 4 ? 'bg-[#df0024] text-white shadow-lg shadow-red-900/50 cursor-pointer' : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-50'
-            }`}
+            className={`mt-8 w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${pin.length === 4 ? 'bg-[#df0024] text-white shadow-lg shadow-red-900/50 cursor-pointer' : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-50'
+              }`}
           >
-            {loading ? <Loader2 className="animate-spin" /> : <>Acessar <ArrowRight size={20} /></>}
+            {loading ? <Loader2 className="animate-spin" /> : <>Acceder <ArrowRight size={20} /></>}
           </button>
         </div>
       )}
